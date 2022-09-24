@@ -1,3 +1,11 @@
+:- module(marquete, [
+	      markdown/2,
+	      thematic_break//1,
+	      atx_heading//1,
+	      setext_heading//1
+]).
+	      
+
 :- use_module(library(dcgs)).
 :- use_module(library(format)).
 :- use_module(library(lists)).
@@ -137,6 +145,18 @@ atx_heading(Html) -->
 	phrase(format_("<h6>~s</h6>", [Title]), Html)
     }.
 
+setext_heading("h1") -->
+    "=".
+setext_heading("h1") -->
+    "=",
+    setext_heading("h1").
+
+setext_heading("h2") -->
+    "-".
+setext_heading("h2") -->
+    "-",
+    setext_heading("h2").
+
 markdown(Md, Html) :-
     phrase(file_as_lines(MdLines), Md),
     markdown_(MdLines, Html).
@@ -149,6 +169,12 @@ markdown_([MdLine|MdLines], Html) :-
     markdown_(MdLines,  Html1),
     append(Html0, Html1, Html).
 
+markdown_([MdLine,Heading|MdLines], Html) :-
+    phrase(setext_heading(Level), Heading),
+    markdown_(MdLines, Html1),
+    phrase(format_("<~s>~s</~s>", [Level, MdLine, Level]), Html0),
+    append(Html0, Html1, Html).
+
 markdown_([MdLine|MdLines], Html) :-
     MdLine \= [],
     markdown_(MdLine, MdLines, Html).
@@ -157,7 +183,7 @@ markdown_([], "").
 
 % for paragraphs
 markdown_(Text, [MdLine|MdLines], Html) :-
-    MdLine \= [],
+    MdLine = [_|_],
     append(Text, [' '|MdLine], NewText),
     markdown_(NewText, MdLines, Html).
 
@@ -180,24 +206,4 @@ file_as_lines([X]) -->
 
 file_ending --> [].
 file_ending --> line_ending.
-file_ending --> line_ending, file_ending.
-
-test :-
-    test_thematic_break,
-    test_atx_heading,
-    test_markdown.
-
-test_thematic_break :-
-    phrase(thematic_break("<hr>"), "  ***"),
-    \+ phrase(thematic_break("<hr>"), "+++"),
-    phrase(thematic_break("<hr>"), "  - -   -"),
-    \+ phrase(thematic_break("<hr>"), "__++"),
-    phrase(thematic_break("<hr>"), "***********").
-
-test_atx_heading :-
-    phrase(atx_heading("<h1>Título</h1>"), "# Título"),
-    \+ phrase(atx_heading("<h1>Título</h1>"), "#Título"),
-    phrase(atx_heading("<h3>Título</h3>"), "  ###    Título").   
-
-test_markdown :-
-    markdown("# Marquete\nWelcome to\nMarquete\n\nSay Hi! to Marquete\n\n***\n", "<h1>Marquete</h1><p>Welcome to Marquete</p><p>Say Hi! to Marquete</p><hr>").
+file_ending --> line_ending, file_ending.    
