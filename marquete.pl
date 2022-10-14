@@ -2,7 +2,8 @@
 	      markdown/2,
 	      thematic_break//1,
 	      atx_heading//1,
-	      setext_heading//1
+	      setext_heading//1,
+	      backslash_escapes//1
 ]).
 	      
 
@@ -156,6 +157,16 @@ setext_heading("h2") -->
 setext_heading("h2") -->
     "-",
     setext_heading("h2").
+
+
+backslash_escapes(Output) --> "\\\"", backslash_escapes(Xs), { append("&quot;", Xs, Output) }.
+backslash_escapes(Output) --> "\\&", backslash_escapes(Xs), { append("&amp;", Xs, Output) }.
+backslash_escapes(Output) --> "\\<", backslash_escapes(Xs), { append("&lt;", Xs, Output) }.
+backslash_escapes(Output) --> "\\>", backslash_escapes(Xs), { append("&gt;", Xs, Output) }.
+backslash_escapes([X|Xs]) --> "\\", [X], { member(X, "!#$%'()*+,-./:;=?@[\\]^_`{|}~") }, backslash_escapes(Xs).
+backslash_escapes(['\\',X|Xs]) --> "\\", [X], backslash_escapes(Xs).
+backslash_escapes([X|Xs]) --> [X], backslash_escapes(Xs).
+backslash_escapes([]) --> [].
 
 markdown(Md, Html) :-
     phrase(file_as_lines(MdLines), Md),
