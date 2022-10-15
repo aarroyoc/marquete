@@ -166,19 +166,19 @@ backslash_escapes(Output) --> "\\&", backslash_escapes(Xs), { append("&amp;", Xs
 backslash_escapes(Output) --> "\\<", backslash_escapes(Xs), { append("&lt;", Xs, Output) }.
 backslash_escapes(Output) --> "\\>", backslash_escapes(Xs), { append("&gt;", Xs, Output) }.
 backslash_escapes([X|Xs]) --> "\\", [X], { member(X, "!#$%'()*+,-./:;=?@[\\]^_`{|}~") }, backslash_escapes(Xs).
-backslash_escapes(['\\',X|Xs]) --> "\\", [X], backslash_escapes(Xs).
+backslash_escapes([\,X|Xs]) --> "\\", [X], backslash_escapes(Xs).
 backslash_escapes([X|Xs]) --> [X], backslash_escapes(Xs).
 backslash_escapes([]) --> [].
 
 % TODO: Emphasis with _
 % TODO: Tests
 
-emphasis([' ','*',' '|Html0]) -->
+emphasis([' ',*,' '|Html0]) -->
     " * ",
     !,
     emphasis(Html0).
 
-emphasis(['\\','*'|Html0]) -->
+emphasis([\,*|Html0]) -->
     "\\*",
     !,
     emphasis(Html0).
@@ -211,12 +211,12 @@ emphasis([X|Html0]) -->
 
 emphasis([]) --> [].
 
-emphasis_low_end([' ','*',' '|Html0]) -->
+emphasis_low_end([' ',*,' '|Html0]) -->
     " * ",
     !,
     emphasis_low_end(Html0).
 
-emphasis_low_end(['\\','*'|Html0]) -->
+emphasis_low_end([\,*|Html0]) -->
     "\\*",
     !,
     emphasis_low_end(Html0).
@@ -245,12 +245,12 @@ emphasis_low_end([X|Html0]) -->
     [X],
     emphasis_low_end(Html0).
 
-emphasis_high_low_end([' ','*',' '|Html0]) -->
+emphasis_high_low_end([' ',*,' '|Html0]) -->
     " * ",
     !,
     emphasis_high_low_end(Html0).
 
-emphasis_high_low_end(['\\','*'|Html0]) -->
+emphasis_high_low_end([\,*|Html0]) -->
     "\\*",
     !,
     emphasis_high_low_end(Html0).
@@ -270,12 +270,12 @@ emphasis_high_low_end([X|Html0]) -->
     [X],
     emphasis_high_low_end(Html0).
 
-emphasis_high_end([' ','*',' '|Html0]) -->
+emphasis_high_end([' ',*,' '|Html0]) -->
     " * ",
     !,
     emphasis_high_end(Html0).
 
-emphasis_high_end(['\\','*'|Html0]) -->
+emphasis_high_end([\,*|Html0]) -->
     "\\*",
     !,
     emphasis_high_end(Html0).
@@ -300,12 +300,12 @@ emphasis_high_end([X|Html0]) -->
     [X],
     emphasis_high_end(Html0).
 
-emphasis_low_high_end([' ','*',' '|Html0]) -->
+emphasis_low_high_end([' ',*,' '|Html0]) -->
     " * ",
     !,
     emphasis_low_high_end(Html0).
 
-emphasis_low_high_end(['\\','*'|Html0]) -->
+emphasis_low_high_end([\,*|Html0]) -->
     "\\*",
     !,
     emphasis_low_high_end(Html0).
