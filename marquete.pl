@@ -3,7 +3,8 @@
 	      thematic_break//1,
 	      atx_heading//1,
 	      setext_heading//1,
-	      backslash_escapes//1
+	      backslash_escapes//1,
+	      emphasis//1
 ]).
 	      
 
@@ -158,6 +159,7 @@ setext_heading("h2") -->
     "-",
     setext_heading("h2").
 
+look_ahead(T), [T] --> [T].
 
 backslash_escapes(Output) --> "\\\"", backslash_escapes(Xs), { append("&quot;", Xs, Output) }.
 backslash_escapes(Output) --> "\\&", backslash_escapes(Xs), { append("&amp;", Xs, Output) }.
@@ -167,6 +169,153 @@ backslash_escapes([X|Xs]) --> "\\", [X], { member(X, "!#$%'()*+,-./:;=?@[\\]^_`{
 backslash_escapes(['\\',X|Xs]) --> "\\", [X], backslash_escapes(Xs).
 backslash_escapes([X|Xs]) --> [X], backslash_escapes(Xs).
 backslash_escapes([]) --> [].
+
+% TODO: Emphasis with _
+% TODO: Tests
+
+emphasis([' ','*',' '|Html0]) -->
+    " * ",
+    !,
+    emphasis(Html0).
+
+emphasis(['\\','*'|Html0]) -->
+    "\\*",
+    !,
+    emphasis(Html0).
+
+emphasis(Html) -->
+    "*",
+    look_ahead(T),
+    {
+	\+ T = (*)
+    },
+    emphasis_low_end(Html0),
+    !,
+    emphasis(Html1),
+    {
+	phrase(format_("<em>~s</em>~s", [Html0, Html1]), Html)
+    }.
+
+emphasis(Html) -->
+    "**",
+    emphasis_high_end(Html0),
+    !,
+    emphasis(Html1),
+    {
+	phrase(format_("<strong>~s</strong>~s", [Html0, Html1]), Html)
+    }.
+
+emphasis([X|Html0]) -->
+    [X],
+    emphasis(Html0).
+
+emphasis([]) --> [].
+
+emphasis_low_end([' ','*',' '|Html0]) -->
+    " * ",
+    !,
+    emphasis_low_end(Html0).
+
+emphasis_low_end(['\\','*'|Html0]) -->
+    "\\*",
+    !,
+    emphasis_low_end(Html0).
+
+emphasis_low_end("") -->
+    "*",
+    look_ahead(T),
+    {
+	\+ T = (*)
+    },
+    !.
+
+emphasis_low_end(Html) -->
+    "**",
+    emphasis_low_high_end(Html0),
+    !,
+    emphasis_low_end(Html1),
+    {
+	phrase(format_("<strong>~s</strong>~s", [Html0, Html1]), Html)
+    }.
+
+emphasis_low_end("") -->
+    "*".
+
+emphasis_low_end([X|Html0]) -->
+    [X],
+    emphasis_low_end(Html0).
+
+emphasis_high_low_end([' ','*',' '|Html0]) -->
+    " * ",
+    !,
+    emphasis_high_low_end(Html0).
+
+emphasis_high_low_end(['\\','*'|Html0]) -->
+    "\\*",
+    !,
+    emphasis_high_low_end(Html0).
+
+emphasis_high_low_end("") -->
+    "*",
+    look_ahead(T),
+    {
+	\+ T = (*)
+    },
+    !.
+
+emphasis_high_low_end("") -->
+    "*".
+
+emphasis_high_low_end([X|Html0]) -->
+    [X],
+    emphasis_high_low_end(Html0).
+
+emphasis_high_end([' ','*',' '|Html0]) -->
+    " * ",
+    !,
+    emphasis_high_end(Html0).
+
+emphasis_high_end(['\\','*'|Html0]) -->
+    "\\*",
+    !,
+    emphasis_high_end(Html0).
+
+emphasis_high_end(Html) -->
+    "*",
+    look_ahead(T),
+    {
+	\+ T = (*)
+    },
+    emphasis_high_low_end(Html0),
+    !,
+    emphasis_high_end(Html1),
+    {
+	phrase(format_("<em>~s</em>~s", [Html0, Html1]), Html)
+    }.
+
+emphasis_high_end("") -->
+    "**".
+
+emphasis_high_end([X|Html0]) -->
+    [X],
+    emphasis_high_end(Html0).
+
+emphasis_low_high_end([' ','*',' '|Html0]) -->
+    " * ",
+    !,
+    emphasis_low_high_end(Html0).
+
+emphasis_low_high_end(['\\','*'|Html0]) -->
+    "\\*",
+    !,
+    emphasis_low_high_end(Html0).
+
+emphasis_low_high_end("") -->
+    "**".
+
+emphasis_low_high_end([X|Html0]) -->
+    [X],
+    emphasis_low_high_end(Html0).
 
 markdown(Md, Html) :-
     phrase(file_as_lines(MdLines), Md),
