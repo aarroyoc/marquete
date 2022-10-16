@@ -28,7 +28,8 @@ test(emphasis) :-
     phrase(marquete:emphasis("Hola * amigos"), "Hola * amigos"),
     phrase(marquete:emphasis("Hola ami<em>gos</em>"), "Hola ami*gos*"),
     phrase(marquete:emphasis("Hola ami<strong>gos</strong>"), "Hola ami**gos**"),
-    phrase(marquete:emphasis("<em>H<strong>o</strong>la</em> <strong><em>amigos</em></strong>"), "*H**o**la* ***amigos***").
+    phrase(marquete:emphasis("<em>H<strong>o</strong>la</em> <strong><em>amigos</em></strong>"), "*H**o**la* ***amigos***"),
+    phrase(marquete:emphasis("<em>H<strong>o</strong>la</em> <em><strong>am</strong>i<strong>gos</strong></em>"), "_H**o**la_ *__am__i__gos__*").
     
 
 test(markdown) :-

@@ -173,23 +173,35 @@ backslash_escapes([]) --> [].
 % TODO: Emphasis with _
 % TODO: Tests
 
-emphasis([' ',*,' '|Html0]) -->
-    " * ",
+emphasis([' ',T,' '|Html0]) -->
+    " ",
+    [T],
+    " ",
+    {
+	member(T, "*_")
+    },
     !,
     emphasis(Html0).
 
-emphasis([\,*|Html0]) -->
-    "\\*",
+emphasis([\,T|Html0]) -->
+    "\\",
+    [T],
+    {
+	member(T, "*_")
+    },
     !,
     emphasis(Html0).
 
 emphasis(Html) -->
-    "*",
+    [G],
+    {
+	member(G, "*_")
+    },
     look_ahead(T),
     {
-	\+ T = (*)
+	\+ T = G
     },
-    emphasis_low_end(Html0),
+    emphasis_low_end(G, Html0),
     !,
     emphasis(Html1),
     {
@@ -197,8 +209,11 @@ emphasis(Html) -->
     }.
 
 emphasis(Html) -->
-    "**",
-    emphasis_high_end(Html0),
+    [T,T],
+    {
+	member(T, "*_")
+    },
+    emphasis_high_end(T, Html0),
     !,
     emphasis(Html1),
     {
@@ -211,111 +226,153 @@ emphasis([X|Html0]) -->
 
 emphasis([]) --> [].
 
-emphasis_low_end([' ',*,' '|Html0]) -->
-    " * ",
+emphasis_low_end(G, [' ',T,' '|Html0]) -->
+    " ",
+    [T],
+    " ",
+    {
+	member(T, "*_")
+    },
     !,
-    emphasis_low_end(Html0).
+    emphasis_low_end(G, Html0).
 
-emphasis_low_end([\,*|Html0]) -->
-    "\\*",
+emphasis_low_end(G, [\,T|Html0]) -->
+    "\\",
+    [T],
+    {
+	member(T, "*_")
+    },
     !,
-    emphasis_low_end(Html0).
+    emphasis_low_end(G, Html0).
 
-emphasis_low_end("") -->
-    "*",
+emphasis_low_end(G, "") -->
+    [G],
     look_ahead(T),
     {
-	\+ T = (*)
+	\+ T = G
     },
     !.
 
-emphasis_low_end(Html) -->
-    "**",
-    emphasis_low_high_end(Html0),
+emphasis_low_end(G, Html) -->
+    [T,T],
+    {
+	member(T, "*_")
+    },
+    emphasis_low_high_end(T, Html0),
     !,
-    emphasis_low_end(Html1),
+    emphasis_low_end(G, Html1),
     {
 	phrase(format_("<strong>~s</strong>~s", [Html0, Html1]), Html)
     }.
 
-emphasis_low_end("") -->
-    "*".
+emphasis_low_end(G, "") -->
+    [G].
 
-emphasis_low_end([X|Html0]) -->
+emphasis_low_end(G, [X|Html0]) -->
     [X],
-    emphasis_low_end(Html0).
+    emphasis_low_end(G, Html0).
 
-emphasis_high_low_end([' ',*,' '|Html0]) -->
-    " * ",
+emphasis_high_low_end(G, [' ',T,' '|Html0]) -->
+    " ",
+    [T],
+    " ",
+    {
+	member(T, "*_")
+    },
     !,
-    emphasis_high_low_end(Html0).
+    emphasis_high_low_end(G, Html0).
 
-emphasis_high_low_end([\,*|Html0]) -->
-    "\\*",
+emphasis_high_low_end(G, [\,T|Html0]) -->
+    "\\",
+    [T],
+    {
+	member(T, "*_")
+    },
     !,
-    emphasis_high_low_end(Html0).
+    emphasis_high_low_end(G, Html0).
 
-emphasis_high_low_end("") -->
-    "*",
+emphasis_high_low_end(G, "") -->
+    [G],
     look_ahead(T),
     {
-	\+ T = (*)
+	\+ T = G
     },
     !.
 
-emphasis_high_low_end("") -->
-    "*".
+emphasis_high_low_end(G, "") -->
+    [G].
 
-emphasis_high_low_end([X|Html0]) -->
+emphasis_high_low_end(G, [X|Html0]) -->
     [X],
-    emphasis_high_low_end(Html0).
+    emphasis_high_low_end(G, Html0).
 
-emphasis_high_end([' ',*,' '|Html0]) -->
-    " * ",
-    !,
-    emphasis_high_end(Html0).
-
-emphasis_high_end([\,*|Html0]) -->
-    "\\*",
-    !,
-    emphasis_high_end(Html0).
-
-emphasis_high_end(Html) -->
-    "*",
-    look_ahead(T),
+emphasis_high_end(G, [' ',T,' '|Html0]) -->
+    " ",
+    [T],
+    " ",
     {
-	\+ T = (*)
+	member(T, "*_")
     },
-    emphasis_high_low_end(Html0),
     !,
-    emphasis_high_end(Html1),
+    emphasis_high_end(G, Html0).
+
+emphasis_high_end(G, [\,T|Html0]) -->
+    "\\",
+    [T],
+    {
+	member(T, "*_")
+    },
+    !,
+    emphasis_high_end(G, Html0).
+
+emphasis_high_end(G, Html) -->
+    [T],
+    {
+	member(T, "*_")
+    },
+    look_ahead(U),
+    {
+	\+ T = U
+    },
+    emphasis_high_low_end(T, Html0),
+    !,
+    emphasis_high_end(G, Html1),
     {
 	phrase(format_("<em>~s</em>~s", [Html0, Html1]), Html)
     }.
 
-emphasis_high_end("") -->
-    "**".
+emphasis_high_end(G, "") -->
+    [G, G].
 
-emphasis_high_end([X|Html0]) -->
+emphasis_high_end(G, [X|Html0]) -->
     [X],
-    emphasis_high_end(Html0).
+    emphasis_high_end(G, Html0).
 
-emphasis_low_high_end([' ',*,' '|Html0]) -->
-    " * ",
+emphasis_low_high_end(G, [' ',T,' '|Html0]) -->
+    " ",
+    [T],
+    " ",
+    {
+	member(T, "*_")
+    },
     !,
-    emphasis_low_high_end(Html0).
+    emphasis_low_high_end(G, Html0).
 
-emphasis_low_high_end([\,*|Html0]) -->
-    "\\*",
+emphasis_low_high_end(G, [\,T|Html0]) -->
+    "\\",
+    [T],
+    {
+	member(T, "*_")
+    },
     !,
-    emphasis_low_high_end(Html0).
+    emphasis_low_high_end(G, Html0).
 
-emphasis_low_high_end("") -->
-    "**".
+emphasis_low_high_end(G, "") -->
+    [G, G].
 
-emphasis_low_high_end([X|Html0]) -->
+emphasis_low_high_end(G, [X|Html0]) -->
     [X],
-    emphasis_low_high_end(Html0).
+    emphasis_low_high_end(G, Html0).
 
 markdown(Md, Html) :-
     phrase(file_as_lines(MdLines), Md),
