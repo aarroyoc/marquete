@@ -410,6 +410,21 @@ inline_code_end(N, [\,'`'|Html0]) -->
 inline_code_end(N, "") -->
     backticks(N),!.
 
+inline_code_end(N, Html) -->
+    "&",
+    inline_code_end(N, Html0),
+    { append("&amp;", Html0, Html) }.
+
+inline_code_end(N, Html) -->
+    "<",
+    inline_code_end(N, Html0),
+    { append("&lt;", Html0, Html) }.
+
+inline_code_end(N, Html) -->
+    ">",
+    inline_code_end(N, Html0),
+    { append("&gt;", Html0, Html) }.
+
 inline_code_end(N, [X|Html0]) -->
     [X],
     inline_code_end(N, Html0).

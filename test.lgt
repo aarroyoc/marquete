@@ -32,7 +32,8 @@ test(emphasis) :-
     phrase(marquete:emphasis("<em>H<strong>o</strong>la</em> <em><strong>am</strong>i<strong>gos</strong></em>"), "_H**o**la_ *__am__i__gos__*").
 
 test(inline_code) :-
-    phrase(marquete:inline_code("<code>Hola` amigos</code>"), "``Hola` amigos``").
+    phrase(marquete:inline_code("<code>Hola` amigos</code>"), "``Hola` amigos``"),
+    phrase(marquete:inline_code("Please don't use any <code>&lt;blink&gt;</code> tags."), "Please don't use any `<blink>` tags.").
     
 
 test(markdown) :-
