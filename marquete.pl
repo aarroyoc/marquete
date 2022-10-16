@@ -4,7 +4,8 @@
 	      atx_heading//1,
 	      setext_heading//1,
 	      backslash_escapes//1,
-	      emphasis//1
+	      emphasis//1,
+	      inline_code//1
 ]).
 	      
 
@@ -373,6 +374,45 @@ emphasis_low_high_end(G, "") -->
 emphasis_low_high_end(G, [X|Html0]) -->
     [X],
     emphasis_low_high_end(G, Html0).
+
+inline_code([\,'`'|Html0]) -->
+    "\\`",
+    !,
+    inline_code(Html0).
+
+inline_code(Html) -->
+    backticks(N), { N > 0 },
+    inline_code_end(N, Html0),
+    !,
+    inline_code(Html1),
+    {
+	phrase(format_("<code>~s</code>~s", [Html0, Html1]), Html)
+    }.
+
+inline_code([X|Html0]) -->
+    [X],
+    inline_code(Html0).
+
+inline_code("") --> [].
+
+backticks(N) -->
+    "`",
+    backticks(N0),
+    { N is N0 + 1 }.
+
+backticks(1) --> "`".
+
+inline_code_end(N, [\,'`'|Html0]) -->
+    "\\`",
+    !,
+    inline_code_end(N, Html0).
+
+inline_code_end(N, "") -->
+    backticks(N),!.
+
+inline_code_end(N, [X|Html0]) -->
+    [X],
+    inline_code_end(N, Html0).
 
 markdown(Md, Html) :-
     phrase(file_as_lines(MdLines), Md),
