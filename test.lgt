@@ -34,6 +34,12 @@ test(emphasis) :-
 test(inline_code) :-
     phrase(marquete:inline_code("<code>Hola` amigos</code>"), "``Hola` amigos``"),
     phrase(marquete:inline_code("Please don't use any <code>&lt;blink&gt;</code> tags."), "Please don't use any `<blink>` tags.").
+
+test(inline_image) :-
+    phrase(marquete:inline_image("Here in Paris <img alt=\"Alt text\" src=\"/path/to/img.jpg\"> so happy!"), "Here in Paris ![Alt text](/path/to/img.jpg) so happy!").
+
+test(inline_link) :-
+    phrase(marquete:inline_link("Here in Paris <a href=\"/path/to/img.jpg\">Alt text</a> so happy!"), "Here in Paris [Alt text](/path/to/img.jpg) so happy!").
     
 
 test(markdown) :-

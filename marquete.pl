@@ -5,7 +5,8 @@
 	      setext_heading//1,
 	      backslash_escapes//1,
 	      emphasis//1,
-	      inline_code//1
+	      inline_code//1,
+	      inline_image//1
 ]).
 	      
 
@@ -429,6 +430,49 @@ inline_code_end(N, [X|Html0]) -->
     [X],
     inline_code_end(N, Html0).
 
+inline_image([\,'!'|Html]) -->
+    "\\!",
+    !,
+    inline_image(Html).
+
+inline_image(Html) -->
+    "![",
+    seq(AltText),{ \+ member(']', AltText) },
+    "](",
+    seq(ImgPath),{ \+ member(')', ImgPath) },
+    ")",
+    inline_image(Html1),
+    {
+	phrase(format_("<img alt=\"~s\" src=\"~s\">~s", [AltText, ImgPath, Html1]), Html)
+    }.
+
+inline_image([X|Html0]) -->
+    [X],
+    inline_image(Html0).
+
+inline_image("") --> [].
+
+inline_link([\,'['|Html0]) -->
+    "\\[",
+    inline_link(Html0).
+
+inline_link(Html) -->
+    "[",
+    seq(Text),{ \+ member(']', Text) },
+    "](",
+    seq(Link),{ \+ member(')', Link) },
+    ")",
+    inline_image(Html1),
+    {
+	phrase(format_("<a href=\"~s\">~s</a>~s", [Link, Text, Html1]), Html)
+    }.
+
+inline_link([X|Html0]) -->
+    [X],
+    inline_link(Html0).
+
+inline_link("") --> [].
+ 
 markdown(Md, Html) :-
     phrase(file_as_lines(MdLines), Md),
     markdown_(MdLines, Html).
