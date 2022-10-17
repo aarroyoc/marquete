@@ -40,10 +40,12 @@ test(inline_image) :-
 
 test(inline_link) :-
     phrase(marquete:inline_link("Here in Paris <a href=\"/path/to/img.jpg\">Alt text</a> so happy!"), "Here in Paris [Alt text](/path/to/img.jpg) so happy!").
-    
+
+test(inline_text) :-
+    marquete:inline_text("Hi [fr*i*ends](/friends) of _Pro**log**_! Let's go to ![paris](paris.png) \\& have some ``fun``", "Hi <a href=\"/friends\">fr<em>i</em>ends</a> of <em>Pro<strong>log</strong></em>! Let\'s go to <img alt=\"paris\" src=\"paris.png\"> &amp; have some <code>fun</code>").
 
 test(markdown) :-
     marquete:markdown("# Marquete\nWelcome to\nMarquete\n\nSay Hi! to Marquete\n\n***\n", "<h1>Marquete</h1><p>Welcome to Marquete</p><p>Say Hi! to Marquete</p><hr>"),
-    marquete:markdown("Marquete\n=====\nWelcome to\nMarquete\n\nSay Hi! to Marquete\n\n***\n", "<h1>Marquete</h1><p>Welcome to Marquete</p><p>Say Hi! to Marquete</p><hr>").
+    marquete:markdown("Marquete\n=====\nWelcome to\nMarquete\n\nSay **Hi!** to Marquete\n\n***\n", "<h1>Marquete</h1><p>Welcome to Marquete</p><p>Say <strong>Hi!</strong> to Marquete</p><hr>").
 
 :- end_object.
