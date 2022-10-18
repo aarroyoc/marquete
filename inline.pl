@@ -4,7 +4,8 @@
 	      inline_code//1,
 	      inline_image//1,
 	      inline_link//1,
-	      inline_text/2
+	      inline_text/2,
+	      backticks//1
 ]).
 
 :- use_module(library(dcgs)).

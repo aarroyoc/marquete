@@ -170,7 +170,36 @@ setext_heading("h2") -->
 setext_heading("h2") -->
     "-",
     setext_heading("h2").
- 
+
+start_code_fence(N, InfoString) -->
+    backticks(N), { N >= 3 },
+    seq(InfoString).
+
+ending_code_fence(N) -->
+    backticks(N),
+    ... .
+
+code_line(Html) -->
+    "&",
+    code_line(Html0),
+    { append("&amp;", Html0, Html) }.
+
+code_line(Html) -->
+    "<",
+    code_line(Html0),
+    { append("&lt;", Html0, Html) }.
+
+code_line(Html) -->
+    ">",
+    code_line(Html0),
+    { append("&gt;", Html0, Html) }.
+
+code_line([X|Html0]) -->
+    [X],
+    code_line(Html0).
+
+code_line("") --> [].
+
 markdown(Md, Html) :-
     phrase(file_as_lines(MdLines), Md),
     markdown_(MdLines, Html).
@@ -191,16 +220,46 @@ markdown_([MdLine,Heading|MdLines], Html) :-
     append(Html0, Html1, Html).
 
 markdown_([MdLine|MdLines], Html) :-
+    phrase(start_code_fence(N, InfoString), MdLine),
+    markdown_code_fence(N, "", MdLines, Html).
+
+markdown_([MdLine|MdLines], Html) :-
     MdLine \= [],
     markdown_(MdLine, MdLines, Html).
 
 markdown_([], "").
 
+% for fenced code blocks
+markdown_code_fence(_N, Code, [], Html) :-
+    phrase(format_("<pre><code>~s</code></pre>", [Code]), Html).
+
+markdown_code_fence(N, Code, [MdLine|MdLines], Html) :-
+    phrase(ending_code_fence(N), MdLine),
+    !,
+    phrase(format_("<pre><code>~s</code></pre>", [Code]), Html0),
+    markdown_(MdLines, Html1),
+    append(Html0, Html1, Html).
+
+markdown_code_fence(N, Code0, [MdLine|MdLines], Html) :-
+    phrase(code_line(CodeLine), MdLine),
+    append(Code0, ['\n'|CodeLine], Code),
+    markdown_code_fence(N, Code, MdLines, Html).
+
 % for paragraphs
 markdown_(TextMd, [MdLine|MdLines], Html) :-
     MdLine = [_|_],
+    \+ phrase(start_code_fence(_, _), MdLine),
     append(TextMd, [' '|MdLine], NewText),
     markdown_(NewText, MdLines, Html).
+
+% code fence blocks can interrupt a paragraph
+markdown_(TextMd, [MdLine|MdLines], Html) :-
+    MdLine = [_|_],
+    phrase(start_code_fence(_, _), MdLine),
+    inline_text(TextMd, TextHtml),
+    phrase(format_("<p>~s</p>", [TextHtml]), Html0),
+    markdown_([MdLine|MdLines], Html1),
+    append(Html0, Html1, Html).
 
 markdown_(TextMd, [MdLine|MdLines], Html) :-
     MdLine = [],
