@@ -171,6 +171,14 @@ setext_heading("h2") -->
     "-",
     setext_heading("h2").
 
+indented_code(Code) -->
+    "    ",
+    seq(Code).
+
+indented_code(Code) -->
+    "\t",
+    seq(Code).
+
 start_code_fence(N, InfoString) -->
     backticks(N), { N >= 3 },
     seq(InfoString).
@@ -220,14 +228,33 @@ markdown_([MdLine,Heading|MdLines], Html) :-
     append(Html0, Html1, Html).
 
 markdown_([MdLine|MdLines], Html) :-
-    phrase(start_code_fence(N, InfoString), MdLine),
+    phrase(start_code_fence(N, InfoString), MdLine),!,
     markdown_code_fence(N, "", MdLines, Html).
+
+markdown_([MdLine|MdLines], Html) :-
+    phrase(indented_code(Code0), MdLine),!,
+    markdown_code_indent(Code0, MdLines, Html).
 
 markdown_([MdLine|MdLines], Html) :-
     MdLine \= [],
     markdown_(MdLine, MdLines, Html).
 
 markdown_([], "").
+
+% for indented code blocks
+markdown_code_indent(Code0, [MdLine|MdLines], Html) :-
+    phrase(indented_code(Code1), MdLine),
+    append(Code0, ['\n'|Code1], Code),
+    markdown_code_indent(Code, MdLines, Html).
+
+markdown_code_indent(Code, [MdLine|MdLines], Html) :-
+    \+ phrase(indented_code(_), MdLine),
+    phrase(format_("<pre><code>~s</code></pre>", [Code]), Html0),
+    markdown_([MdLine|MdLines], Html1),
+    append(Html0, Html1, Html).
+
+markdown_code_indent(Code, [], Html) :-
+    phrase(format_("<pre><code>~s</code></pre>", [Code]), Html).
 
 % for fenced code blocks
 markdown_code_fence(_N, Code, [], Html) :-

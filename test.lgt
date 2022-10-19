@@ -47,6 +47,7 @@ test(inline_text) :-
 test(markdown) :-
     marquete:markdown("# Marquete\nWelcome to\nMarquete\n\nSay Hi! to Marquete\n\n***\n", "<h1>Marquete</h1><p>Welcome to Marquete</p><p>Say Hi! to Marquete</p><hr>"),
     marquete:markdown("Marquete\n=====\nWelcome to\nMarquete\n\nSay **Hi!** to Marquete\n\n***\n", "<h1>Marquete</h1><p>Welcome to Marquete</p><p>Say <strong>Hi!</strong> to Marquete</p><hr>"),
-    marquete:markdown("# Marquete [Code](/code)\nSee this HTML code:\n```html\n<!DOCTYPE html>\n```\nVery easy!", "<h1>Marquete <a href=\"/code\">Code</a></h1><p>See this HTML code:</p><pre><code>\n&lt;!DOCTYPE html&gt;</code></pre><p>Very easy!</p>").
+    marquete:markdown("# Marquete [Code](/code)\nSee this HTML code:\n```html\n<!DOCTYPE html>\n```\nVery easy!", "<h1>Marquete <a href=\"/code\">Code</a></h1><p>See this HTML code:</p><pre><code>\n&lt;!DOCTYPE html&gt;</code></pre><p>Very easy!</p>"),
+    marquete:markdown("# Marquete [Code](/code)\nSee this Bash code:\n\n    cp file.a file.b\n    mv file.b file.a", "<h1>Marquete <a href=\"/code\">Code</a></h1><p>See this Bash code:</p><pre><code>cp file.a file.b\nmv file.b file.a</code></pre>").
 
 :- end_object.
