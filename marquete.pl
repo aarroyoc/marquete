@@ -208,6 +208,10 @@ code_line([X|Html0]) -->
 
 code_line("") --> [].
 
+blockquote_line(Text) -->
+    "> ",
+    seq(Text).
+
 markdown(Md, Html) :-
     phrase(file_as_lines(MdLines), Md),
     markdown_(MdLines, Html).
@@ -236,10 +240,34 @@ markdown_([MdLine|MdLines], Html) :-
     markdown_code_indent(Code0, MdLines, Html).
 
 markdown_([MdLine|MdLines], Html) :-
+    phrase(blockquote_line(Line), MdLine),!,
+    markdown_blockquote([Line], MdLines, Html).
+
+markdown_([MdLine|MdLines], Html) :-
     MdLine \= [],
     markdown_(MdLine, MdLines, Html).
 
+markdown_([MdLine|MdLines], Html) :-
+    MdLine = [],
+    markdown_(MdLines, Html0),
+    append("<br>", Html0, Html).
+
 markdown_([], "").
+
+% for non-lazy blockquotes
+markdown_blockquote(Blockquote0, [MdLine|MdLines], Html) :-
+    phrase(blockquote_line(Line), MdLine),!,
+    append(Blockquote0, [Line], Blockquote),
+    markdown_blockquote(Blockquote, MdLines, Html).
+
+markdown_blockquote(Blockquote, MdLines, Html) :-
+    markdown_(Blockquote, Html0),
+    markdown_(MdLines, Html1),
+    phrase(format_("<blockquote>~s</blockquote>~s", [Html0, Html1]), Html).
+
+markdown_blockquote(Blockquote, [], Html) :-
+    markdown_(Blockquote, Html0),
+    phrase(format_("<blockquote>~s</blockquote>", [Html0]), Html).
 
 % for indented code blocks
 markdown_code_indent(Code0, [MdLine|MdLines], Html) :-
