@@ -51,6 +51,7 @@ test(markdown) :-
     marquete:markdown("# Marquete [Code](/code)\nSee this Bash code:\n\n    cp file.a file.b\n    mv file.b file.a", "<h1>Marquete <a href=\"/code\">Code</a></h1><p>See this Bash code:</p><pre><code>cp file.a file.b\nmv file.b file.a</code></pre>"),
     marquete:markdown("Hola\n\n> Hola\n> \n> > *Adios*\n> Hola\nNo me parece bien", "<p>Hola</p><blockquote><p>Hola</p><blockquote><p><em>Adios</em></p></blockquote><p>Hola</p></blockquote><p>No me parece bien</p>"),
     marquete:markdown("1) 1\n * 2\n  * 3\n* Hola", "<ol><li><p> 1</p><ul><li><p>2</p><ul><li><p>3</p></li></ul></li></ul></li></ol><ul><li><p>Hola</p></li></ul>"),
-    marquete:markdown("* 1\n * 2\n  * 3\n* Hola", "<ul><li><p>1</p><ul><li><p>2</p><ul><li><p>3</p></li></ul></li></ul></li><li><p>Hola</p></li></ul>").
+    marquete:markdown("* 1\n * 2\n  * 3\n* Hola", "<ul><li><p>1</p><ul><li><p>2</p><ul><li><p>3</p></li></ul></li></ul></li><li><p>Hola</p></li></ul>"),
+    marquete:markdown("<div>\nAT&T</div>\n\n# Hola AT&T", "<div>\nAT&T</div><h1>Hola AT&amp;T</h1>").
 
 :- end_object.

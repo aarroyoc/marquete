@@ -5,21 +5,52 @@
 	      inline_image//1,
 	      inline_link//1,
 	      inline_text/2,
-	      backticks//1
+	      backticks//1,
+	      letters//1
 ]).
 
+:- use_module(library(charsio)).
 :- use_module(library(dcgs)).
 :- use_module(library(format)).
 :- use_module(library(lists)).
 
 look_ahead(T), [T] --> [T].
 
-backslash_escapes(Output) --> "\\\"", backslash_escapes(Xs), { append("&quot;", Xs, Output) }.
-backslash_escapes(Output) --> "\\&", backslash_escapes(Xs), { append("&amp;", Xs, Output) }.
-backslash_escapes(Output) --> "\\<", backslash_escapes(Xs), { append("&lt;", Xs, Output) }.
-backslash_escapes(Output) --> "\\>", backslash_escapes(Xs), { append("&gt;", Xs, Output) }.
-backslash_escapes([X|Xs]) --> "\\", [X], { member(X, "!#$%'()*+,-./:;=?@[\\]^_`{|}~") }, backslash_escapes(Xs).
-backslash_escapes([\,X|Xs]) --> "\\", [X], backslash_escapes(Xs).
+letters([X|Xs]) --> [X], { char_type(X, alphabetic) }, letters(Xs).
+letters("") --> [].
+
+html_entity(['&'|Out]) -->
+    "&",
+    letters(Xs),
+    ";",
+    { append(Xs, ";", Out) }.
+
+html_tag(['<'|Out]) -->
+    "<",
+    seq(Xs),
+    ">",
+    { append(Xs, ">", Out) }.
+
+html_tag(['<','/'|Out]) -->
+    "</",
+    seq(Xs),
+    ">",
+    { append(Xs, ">", Out) }.
+
+auto_escapes(Output) --> html_entity(HE),!, auto_escapes(Xs), { append(HE, Xs, Output) }.
+auto_escapes(Output) --> "&",!, auto_escapes(Xs), { append("&amp;", Xs, Output) }.
+auto_escapes(Output) --> html_tag(HT),!, auto_escapes(Xs), { append(HT, Xs, Output) }.
+auto_escapes(Output) --> "<",!, auto_escapes(Xs), { append("&lt;", Xs, Output) }.
+auto_escapes([X|Xs]) --> [X], auto_escapes(Xs).
+auto_escapes([]) --> [].
+
+
+backslash_escapes(Output) --> "\\\"",!, backslash_escapes(Xs), { append("&quot;", Xs, Output) }.
+backslash_escapes(Output) --> "\\&",!, backslash_escapes(Xs), { append("&amp;", Xs, Output) }.
+backslash_escapes(Output) --> "\\<",!, backslash_escapes(Xs), { append("&lt;", Xs, Output) }.
+backslash_escapes(Output) --> "\\>",!, backslash_escapes(Xs), { append("&gt;", Xs, Output) }.
+backslash_escapes([X|Xs]) --> "\\", [X], { member(X, "!#$%'()*+,-./:;=?@[\\]^_`{|}~") },!, backslash_escapes(Xs).
+backslash_escapes([\,X|Xs]) --> "\\", [X],!, backslash_escapes(Xs).
 backslash_escapes([X|Xs]) --> [X], backslash_escapes(Xs).
 backslash_escapes([]) --> [].
 
@@ -329,4 +360,5 @@ inline_text(Md, Html) :-
     phrase(inline_link(Html1), Html0),
     phrase(inline_code(Html2), Html1),
     phrase(emphasis(Html3), Html2),
-    phrase(backslash_escapes(Html), Html3).
+    phrase(backslash_escapes(Html4), Html3),
+    phrase(auto_escapes(Html), Html4).

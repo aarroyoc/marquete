@@ -230,6 +230,9 @@ ulist_line(N, X, Text) -->
 olist_line(N, X, Text) -->
     spaces(N),number_(_),[X], { N < 4, member(X, ".)") }, seq(Text).
 
+start_html_line -->
+    "<", letters(_), ... , ">", ... .
+
 markdown(Md, Html) :-
     phrase(file_as_lines(MdLines), Md),
     markdown_(MdLines, Html).
@@ -266,6 +269,10 @@ markdown_([MdLine|MdLines], Html) :-
     markdown_list(Mode, Indent, Char, [[Text]], MdLines, Html).
 
 markdown_([MdLine|MdLines], Html) :-
+    phrase(start_html_line, MdLine),!,
+    markdown_html(MdLine, MdLines, Html).
+
+markdown_([MdLine|MdLines], Html) :-
     MdLine \= [],
     markdown_(MdLine, MdLines, Html).
 
@@ -275,6 +282,23 @@ markdown_([MdLine|MdLines], Html) :-
     append("<br>", Html0, Html).
 
 markdown_([], "").
+
+% for block-html
+% another line
+markdown_html(Html0, [MdLine|MdLines], Html) :-
+    MdLine = [_|_],
+    append(Html0, "\n", Html1),
+    append(Html1, MdLine, Html2),
+    markdown_html(Html2, MdLines, Html).
+
+% blank line
+markdown_html(Html0, [MdLine|MdLines], Html) :-
+    MdLine = [],
+    markdown_(MdLines, Html1),
+    append(Html0, Html1, Html).
+
+% no more lines
+markdown_html(Html, [], Html).
 
 % for lists
 % new item
