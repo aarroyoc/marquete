@@ -253,7 +253,7 @@ markdown_([MdLine,Heading|MdLines], Html) :-
     append(Html0, Html1, Html).
 
 markdown_([MdLine|MdLines], Html) :-
-    phrase(start_code_fence(N, InfoString), MdLine),!,
+    phrase(start_code_fence(N, _InfoString), MdLine),!,
     markdown_code_fence(N, "", MdLines, Html).
 
 markdown_([MdLine|MdLines], Html) :-
@@ -318,14 +318,14 @@ markdown_list(Mode, Indent, Char, Items0, [MdLine|MdLines], Html) :-
     markdown_list(Mode, Indent, Char, Items, MdLines, Html).
 
 % end of list
-markdown_list(ordered, Indent, Char, Items, [MdLine|MdLines], Html) :-
+markdown_list(ordered, Indent, _Char, Items, [MdLine|MdLines], Html) :-
     phrase((spaces(N), ... ), MdLine), N < Indent + 1,!,
     maplist(markdown_list_items_, Items, ItemsInnerHtml),
     append(ItemsInnerHtml, ItemsHtml),
     markdown_([MdLine|MdLines], Html0),
     phrase(format_("<ol>~s</ol>~s", [ItemsHtml, Html0]), Html).
 
-markdown_list(unordered, Indent, Char, Items, [MdLine|MdLines], Html) :-
+markdown_list(unordered, Indent, _Char, Items, [MdLine|MdLines], Html) :-
     phrase((spaces(N), ... ), MdLine), N < Indent + 1,!,
     maplist(markdown_list_items_, Items, ItemsInnerHtml),
     append(ItemsInnerHtml, ItemsHtml),
@@ -334,12 +334,12 @@ markdown_list(unordered, Indent, Char, Items, [MdLine|MdLines], Html) :-
     
 
 % end of lines
-markdown_list(ordered, Indent, Char, Items, [], Html) :-
+markdown_list(ordered, _Indent, _Char, Items, [], Html) :-
     maplist(markdown_list_items_, Items, ItemsInnerHtml),
     append(ItemsInnerHtml, ItemsHtml),
     phrase(format_("<ol>~s</ol>", [ItemsHtml]), Html).
 
-markdown_list(unordered, Indent, Char, Items, [], Html) :-
+markdown_list(unordered, _Indent, _Char, Items, [], Html) :-
     maplist(markdown_list_items_, Items, ItemsInnerHtml),
     append(ItemsInnerHtml, ItemsHtml),
     phrase(format_("<ul>~s</ul>", [ItemsHtml]), Html).
