@@ -12,6 +12,7 @@
 ]).
 	      
 
+:- use_module(library(charsio)).
 :- use_module(library(dcgs)).
 :- use_module(library(format)).
 :- use_module(library(lists)).
@@ -60,9 +61,17 @@ space --> " ".
 spaces --> space, spaces.
 spaces --> [].
 
+number_([D|Ds]) --> digit(D), number_(Ds).
+number_([D])    --> digit(D).
+
+digit(D) --> [D], { char_type(D, decimal_digit) }.
+
 % Leaf blocks
 zero_to_three_spaces -->
-    ( "" | " " | "  " | "   ").
+    spaces(N), { N < 4 }.
+
+spaces(0) --> "".
+spaces(N) --> " ", spaces(N0), { N is N0 + 1}.
 
 thematic_break("<hr>") -->
     zero_to_three_spaces,
@@ -212,6 +221,15 @@ blockquote_line(Text) -->
     "> ",
     seq(Text).
 
+list_line(unordered, N, X, Text) --> ulist_line(N, X, Text).
+list_line(ordered, N, X, Text) --> olist_line(N, X, Text).
+
+ulist_line(N, X, Text) -->
+    spaces(N),[X]," ", { N < 4, member(X, "*+-") }, seq(Text).
+
+olist_line(N, X, Text) -->
+    spaces(N),number_(_),[X], { N < 4, member(X, ".)") }, seq(Text).
+
 markdown(Md, Html) :-
     phrase(file_as_lines(MdLines), Md),
     markdown_(MdLines, Html).
@@ -244,6 +262,10 @@ markdown_([MdLine|MdLines], Html) :-
     markdown_blockquote([Line], MdLines, Html).
 
 markdown_([MdLine|MdLines], Html) :-
+    phrase(list_line(Mode, Indent, Char, Text), MdLine),!,
+    markdown_list(Mode, Indent, Char, [[Text]], MdLines, Html).
+
+markdown_([MdLine|MdLines], Html) :-
     MdLine \= [],
     markdown_(MdLine, MdLines, Html).
 
@@ -254,17 +276,68 @@ markdown_([MdLine|MdLines], Html) :-
 
 markdown_([], "").
 
+% for lists
+% new item
+markdown_list(Mode, Indent, Char, Items0, [MdLine|MdLines], Html) :-
+    phrase(list_line(Mode, Indent, Char, Text), MdLine),!,
+    append(Items0, [[Text]], Items),
+    markdown_list(Mode, Indent, Char, Items, MdLines, Html).
+
+% add content to current item
+markdown_list(Mode, Indent, Char, Items0, [MdLine|MdLines], Html) :-
+    phrase((spaces(N), seq(Text)), MdLine),
+    N >= Indent + 1,
+    !,
+    append(Items00, [Item], Items0),
+    append(Item, [Text], NewItem),
+    append(Items00, [NewItem], Items),
+    markdown_list(Mode, Indent, Char, Items, MdLines, Html).
+
+% end of list
+markdown_list(ordered, Indent, Char, Items, [MdLine|MdLines], Html) :-
+    phrase((spaces(N), ... ), MdLine), N < Indent + 1,!,
+    maplist(markdown_list_items_, Items, ItemsInnerHtml),
+    append(ItemsInnerHtml, ItemsHtml),
+    markdown_([MdLine|MdLines], Html0),
+    phrase(format_("<ol>~s</ol>~s", [ItemsHtml, Html0]), Html).
+
+markdown_list(unordered, Indent, Char, Items, [MdLine|MdLines], Html) :-
+    phrase((spaces(N), ... ), MdLine), N < Indent + 1,!,
+    maplist(markdown_list_items_, Items, ItemsInnerHtml),
+    append(ItemsInnerHtml, ItemsHtml),
+    markdown_([MdLine|MdLines], Html0),
+    phrase(format_("<ul>~s</ul>~s", [ItemsHtml, Html0]), Html). 
+    
+
+% end of lines
+markdown_list(ordered, Indent, Char, Items, [], Html) :-
+    maplist(markdown_list_items_, Items, ItemsInnerHtml),
+    append(ItemsInnerHtml, ItemsHtml),
+    phrase(format_("<ol>~s</ol>", [ItemsHtml]), Html).
+
+markdown_list(unordered, Indent, Char, Items, [], Html) :-
+    maplist(markdown_list_items_, Items, ItemsInnerHtml),
+    append(ItemsInnerHtml, ItemsHtml),
+    phrase(format_("<ul>~s</ul>", [ItemsHtml]), Html).
+
+markdown_list_items_(Item, Html) :-
+    markdown_(Item, InnerHtml),
+    phrase(format_("<li>~s</li>", [InnerHtml]), Html).
+
 % for non-lazy blockquotes
+% new line
 markdown_blockquote(Blockquote0, [MdLine|MdLines], Html) :-
     phrase(blockquote_line(Line), MdLine),!,
     append(Blockquote0, [Line], Blockquote),
     markdown_blockquote(Blockquote, MdLines, Html).
 
+% end of blockquote
 markdown_blockquote(Blockquote, MdLines, Html) :-
     markdown_(Blockquote, Html0),
     markdown_(MdLines, Html1),
     phrase(format_("<blockquote>~s</blockquote>~s", [Html0, Html1]), Html).
 
+% end of lines
 markdown_blockquote(Blockquote, [], Html) :-
     markdown_(Blockquote, Html0),
     phrase(format_("<blockquote>~s</blockquote>", [Html0]), Html).
@@ -304,6 +377,7 @@ markdown_code_fence(N, Code0, [MdLine|MdLines], Html) :-
 markdown_(TextMd, [MdLine|MdLines], Html) :-
     MdLine = [_|_],
     \+ phrase(start_code_fence(_, _), MdLine),
+    \+ phrase(list_line(_,_, _, _), MdLine),
     append(TextMd, [' '|MdLine], NewText),
     markdown_(NewText, MdLines, Html).
 
@@ -311,6 +385,15 @@ markdown_(TextMd, [MdLine|MdLines], Html) :-
 markdown_(TextMd, [MdLine|MdLines], Html) :-
     MdLine = [_|_],
     phrase(start_code_fence(_, _), MdLine),
+    inline_text(TextMd, TextHtml),
+    phrase(format_("<p>~s</p>", [TextHtml]), Html0),
+    markdown_([MdLine|MdLines], Html1),
+    append(Html0, Html1, Html).
+
+% lists can interrupt a paragraph
+markdown_(TextMd, [MdLine|MdLines], Html) :-
+    MdLine = [_|_],
+    phrase(list_line(_, _, _, _), MdLine),
     inline_text(TextMd, TextHtml),
     phrase(format_("<p>~s</p>", [TextHtml]), Html0),
     markdown_([MdLine|MdLines], Html1),
