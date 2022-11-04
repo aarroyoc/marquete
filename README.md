@@ -14,10 +14,10 @@ where InputStr is a string in Markdown format, and OutputHtml unifies with the o
 Let's render this README with Marquete!
 ```
 :- use_module(marquete).
-:- use_module(library(charsio)).
-:- use_module(library(format)).
+:- use_module(library(dcgs)).
+:- use_module(library(pio)).
 
-?- open("README.md", read, Stream), get_n_chars(Stream, _, Text), markdown(Text, HTML), open("README.html", write, WriteStream), format(WriteStream, "~s", [HTML]).
+?- phrase_from_file(seq(Markdown), "README.md"), markdown(Markdown, HTML), phrase_to_file(seq(HTML), "README.html").
 ```
 
 Runs on:
