@@ -182,11 +182,11 @@ setext_heading("h2") -->
 
 indented_code(Code) -->
     "    ",
-    seq(Code).
+    code_line(Code).
 
 indented_code(Code) -->
     "\t",
-    seq(Code).
+    code_line(Code).
 
 start_code_fence(N, InfoString) -->
     backticks(N), { N >= 3 },
