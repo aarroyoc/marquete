@@ -344,7 +344,7 @@ inline_link(Html) -->
     seq(Link),{ \+ member(')', Link) },
     ")",
     !,
-    inline_image(Html1),
+    inline_link(Html1),
     {
 	phrase(format_("<a href=\"~s\">~s</a>~s", [Link, Text, Html1]), Html)
     }.
